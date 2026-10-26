@@ -24,6 +24,14 @@ substitutions:
   # text it lacks. ESP Screens writes it into the screen's own YAML, from Home Assistant's language or its Settings.
   LANGUAGE: "en"
 
+  # The CJK glyphs (docs/CJK.md): the face the four text fonts take their Chinese glyphs from, and which ones. The
+  # defaults keep the fonts as they were (one glyph they already draw), so a board without the flash for Chinese pays
+  # nothing; a board file, a feature or a screen's own YAML overrides FONT_CJK_GLYPHS with its set and states
+  # SCREEN_CJK to have the hello say "cjk", which is what makes the app send Chinese text through.
+  FONT_CJK_FILE: "NotoSansSC-Regular-cjk.ttf"
+  FONT_CJK_GLYPHS: ""
+  SCREEN_CJK: "false"
+
   ## DIM settings
   AUTO_DIM: "true"                                 # true = enable auto dimming
   AUTO_DIM_TIMEOUT: "600"                           # seconds after last touch
@@ -682,6 +690,9 @@ api:
                     // battery (firmware 0.41.0): this screen has a battery sensor (runtime_tiles::find_battery), so the
                     // top bar can show it; a screen without one never says so, and ESP Screens does not offer the item.
                     if (battery_status::level) features.add("battery");
+                    // cjk (docs/CJK.md): this build carries the CJK glyphs (SCREEN_CJK), so the app sends Chinese
+                    // text through as it is instead of folding it away.
+                    if (std::string("${SCREEN_CJK}") == "true") features.add("cjk");
                     // plugins (docs/PLUGINS.md): this firmware takes plugin tiles and a plugin's item in the top bar.
                     // plugin_api and plugins say which API it offers and which plugins are built in, with their tile
                     // types (plugin_host::hello).
@@ -893,6 +904,8 @@ font:
     extras:
       - file: "${FONT_DIR}/NotoSansSymbols2-hearts.ttf"
         glyphs: ['♡','♥','❤']
+      - file: "${FONT_DIR}/${FONT_CJK_FILE}"
+        glyphs: ${FONT_CJK_GLYPHS}
 
   - file: "${FONT_DIR}/Roboto-500.ttf"
     id: watch_value
@@ -965,6 +978,8 @@ font:
     extras:
       - file: "${FONT_DIR}/NotoSansSymbols2-hearts.ttf"
         glyphs: ['♡','♥','❤']
+      - file: "${FONT_DIR}/${FONT_CJK_FILE}"
+        glyphs: ${FONT_CJK_GLYPHS}
 
   - file: "${FONT_DIR}/Roboto-400.ttf"
     id: sublabel
@@ -986,6 +1001,8 @@ font:
     extras:
       - file: "${FONT_DIR}/NotoSansSymbols2-hearts.ttf"
         glyphs: ['♡','♥','❤']
+      - file: "${FONT_DIR}/${FONT_CJK_FILE}"
+        glyphs: ${FONT_CJK_GLYPHS}
 
   - file: "${FONT_DIR}/Roboto-400.ttf"
     id: sublabel_big
@@ -1007,6 +1024,8 @@ font:
     extras:
       - file: "${FONT_DIR}/NotoSansSymbols2-hearts.ttf"
         glyphs: ['♡','♥','❤']
+      - file: "${FONT_DIR}/${FONT_CJK_FILE}"
+        glyphs: ${FONT_CJK_GLYPHS}
 
   # The name in the starting screen's Tessera lockup (firmware 0.3.8+): only its own letters, a few hundred bytes.
   - file: "${FONT_DIR}/Roboto-700.ttf"

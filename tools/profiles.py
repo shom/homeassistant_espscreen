@@ -302,14 +302,22 @@ def resolved(name):
 def glyphs(source, font):
     """The characters `font` carries in `source` (packages/core.yaml or a profile's text): its glyph list and those of its
     extras, or None. Each list is read as YAML: it holds a ']' and a backslash of its own (firmware 0.36.0+), so a
-    pattern up to the first ']' cuts it."""
-    flow = r'(\[(?:\'[^\']*\'|"(?:[^"\\]|\\.)*"|[^\]\'"])*\])'
-    block = re.search(r'id: ' + font + r'\n    size: [^\n]+\n    bpp: 4\n    glyphs: ' + flow
-                      + r'((?:\n    extras:)?(?:\n      - file: [^\n]+\n        glyphs: ' + flow + r')*)', source)
+    pattern up to the first ']' cuts it. An extras entry's glyphs may also be a plain string of characters (the
+    substituted FONT_CJK_GLYPHS, docs/CJK.md): the font reads that as one string and draws every character in it."""
+    flow = r'\[(?:\'[^\']*\'|"(?:[^"\\]|\\.)*"|[^\]\'"])*\]'
+    one = r'(' + flow + r'|[^ \[\]\n][^\n]*)'
+    block = re.search(r'id: ' + font + r'\n    size: [^\n]+\n    bpp: 4\n    glyphs: (' + flow + r')'
+                      + r'((?:\n    extras:)?(?:\n      - file: [^\n]+\n        glyphs: ' + one + r')*)', source)
     if not block:
         return None
-    lists = [block.group(1)] + re.findall(r'glyphs: ' + flow, block.group(2))
-    return {char for found in lists for char in yaml.safe_load(found)}
+    found = [block.group(1)] + [m.group(1) for m in re.finditer(r'glyphs: ' + one, block.group(2))]
+    chars = set()
+    for item in found:
+        if item.startswith('['):
+            chars |= {char for char in yaml.safe_load(item)}
+        elif item.strip():
+            chars |= set(item.strip())
+    return chars
 
 
 def merged(name):

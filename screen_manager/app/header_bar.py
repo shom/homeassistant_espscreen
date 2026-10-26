@@ -31,6 +31,11 @@ from i18n import TRANSLATIONS, screen_number, screen_t, t
 GLYPHS = frozenset('<>—&@!,.?"%()+-_:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz/…·\'#*=;²³µ–$^~|`[]{}\\×©®™¢¥§♡♥❤ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿĄąĆćĘęŁłŃńŚśŹźŻżČčĎďĚěŇňŘřŠšŤťŮůŽžĹĺĽľŔŕŐőŰűĂăȘșȚțĐđĀāĒēĢģĪīĶķĻļŅņŪūĖėĮįŲųĞğİıŞşĊċĠġĦħŴŵŶŷĿŀŒœŸ„“”‘’«»‹›¿¡€£')
 # The letters of firmware from before the languages (0.2.75 and older), which gets what it can draw.
 LEGACY_GLYPHS = frozenset("<>—&@!,.?\"%()+-_:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzäöüÄÖÜß/…·'#*=;²³µéèëêïîóôàáâçñúû–")
+
+# The CJK glyphs a screen with the "cjk" feature draws (docs/CJK.md): the set its build carried in the four
+# text fonts (FONT_CJK_GLYPHS, packages/hardware/guition-esp32p4.yaml). clean_text keeps them only for such a
+# screen; tests/test_cjk.py holds this set against that board's fonts.
+CJK_GLYPHS = frozenset('、。〈〉《》【】〔〕一七万丈三上下不与专且世业东丝丢两严个中丰临为主丽举乃久么义之乌乎乏乐乘九也习乡书买乱了予争事二于云互五亚些亡交亦产享京亮亲人亿什仅今介仍从仔他付代令以仪们仰件价任份企伊伍休众优伙会伟传伤伦伯估伴伸似但位低住体何余佛作你佳使例供依侵便促俄保信俩修俱倍倒候借值倾假偏做停健偷傲傻像儿允元兄充先光克免党入全八公六兰共关兴兵其具典养兼兽内册再冒写军农冠冰冲决况冷净准凌减几凭出击函刀分切划列刘则刚创初删判利别到制刷券刺刻前剑剥剧剩副力办功加务动助努励劳势勇包化北区医十千升午半华协单卖南博占卡卫印危即却卷厂厅历厉压厌厕原去县参又及友双反发取受变叙口古句另只叫召可台史右叶号司吁吃各合同名后向吓吗否吧吨含听启吸吹吻呀呆呈告员呢周味呼命和咖咨咱品哇哈响哥哦哪哭哲唤售唯唱商啊啡啥啦善喊喜喝嗯嘛嘴器四回因团园困围固国图圈土圣在地圳场圾址均坏坐坑块坚坛坡坦垃垄型埃城域培基堂塔塞境墙增墨士声处备复夏外多夜够大天太夫央失头夹夺奇奋奖套奥女奴她好如妇妈妳妹妻始姐姑姓委姻威娘娱婆婚婴媒子孕字存季学孩宁它宅宇守安完宗官宙定宜宝实审客宣室宪宫害家容宽宾密富寓察对寻导封射将尊小少尔尚尝尤就尸尼尽局屁层居届屋屏展属屠山屿岁岗岛岸川州工左巧巨差己已巴币市布师希帘帝带席帮常幅幕干平年并幸幻广庆床序库应底店府庞废度座庭康延建开异弃弄式引弟张弦弱弹强归当录形彩影役彻彼往征径待很律得循微德徽心必忆志忘忙快念忽怀态怎怒怕怖怜思急性怪总恋恐恢恨恩息恶悉患您悲情惊惜惠惧惩惯想意愚感愤愿慢慧憾懂戏成我或战截戴户房所手才打托执扩扫扮批找承技把抓投抗抢护报抱抵抽担拆拉拍拒拔拖拜拟拥择括拭拯拿持挂指按挑挥挺捕损换据授掉掌排探接控推措描提插握揭援搜搞搬搭摄摆摧摸撑撞撤播操擦支收改攻放政故效敌敏救教敢散敦数整文斗料斤断斯新方施旁旅旋族旗无既日旦旧早时明易星映昨是显晚晨普景晴智暂暖暗暴曝曰曲更曾替最月有朋服朗望朝期未末本术机杀杂权杉李材村束条来杨杭杯松板极构析林果枪架某染柔查标树校样核根格案档桥梁梦械检棒森植楚楼概模次欢欣欧欲款歉歌止正此步武歧死殊段毁母每毒比毕毛毫民气氛水永求汇汉江池污汽沉沙沟没河油治法泛波注泰泳泽洋洗洛津洲活派流测济浙浪海消涉润涨深混添清渐温港游湖湾湿源滑滚满漂漏演漫澳激火灭灯灵灾炸点烈烟烦热焦然照熟燥爆爬爱父爷爸片版牌牙牛物牲特牺犯状犹狂狗独狱狼猜猪猫献率王玩环现玻班球理瑞璃甚生用田由申电男甸画界留略疆疑疗疯疾病痛登白百的皆皇皮益监盖盘盛盟目直相盾省看真眠眼着睛睡督瞧瞭矛知短石矶码研破础硬确碌碍碰示礼社祈祖祝神票祷禁福离秀私种科秒秘秩积称移程稍税稣稳穆究空穿突窗立站竞竟章童端笑笔符第等筑答策签简算管箭箱篇篮籍米类粉粮精系素索紧累繁红约级纪纯纳纵纷纸纽线练组细织终绍经绑结绕给络绝统继绩绪续维综绿缅缓编缘缺网罗罚罪置署美群翰翻老考者而耳耶聊职联聚聪肃肉股肤肯育胁胆背胜胞能脑脚脱脸腊腐腾腿臣自至致舆舒舞航般船良色艺节花苏若苦英苹范茶草荐荣药荷莫获菜菲营落著蒙蓝藏虑虽蛋融蠢血行街衡衣补表袋袖被袭裁裂装西要覆见观规视览觉角解触言誉警计订认讨让训议讯记讲许论讼设访证评识诉词译试诗话诞询该详语误说请诺读课谁调谈谊谋谐谓谢谱谴谷象贝负贡财责败账货质贫购贴贵贷贸费资赋赏赖赚赛赞赢走赴赵赶起超越趋趣足跃跑距跟跨路跳践踪蹈身躺车轨转轮软轻载较辆辈辑输辖辞边辽达迅过迎运近返还这进远违连迟迫述追退送适逃选透逐递途通速造逮逻逼逾遇遍道遗遭遵避邀邓那邦邪邻郡部都配酒醒采释里重量金针钟钥钮钱铁银链销锁错键镇镜长门闭问闲间闻阁阅队防阳阴阵阶阻阿附际陆陈降限陕院除险陪陷随隐障隶难雄集雨雪零雷雹雾需震霜露青静非靠面革韩音页顶项顺须顾顿预领频颗题颜额风飞食餐饭饰饿馆首香马驶驻驾骂骄验骑骗高鬼魂魔鱼鲁鲜鸟鸡麦麻黄黎黑默鼓龄龙！％（），：；？～￥')
 TEXT_BYTES = 40
 # The months in English, the language of reference (tests/test_header_bar.py); a screen gets them in its own language
 # (short_date, app 0.2.90).
@@ -120,9 +125,24 @@ AMBER, GREEN, RED, BLUE, ORANGE, TEAL = 'FFB300', '43A047', 'E53935', '2196F3', 
 ALARM_CLASSES = frozenset(['battery', 'carbon_monoxide', 'gas', 'heat', 'lock', 'moisture', 'problem', 'safety', 'smoke',
                            'sound', 'tamper'])
 
+_cjk_screen = False
+
+
+def set_cjk_screen(features=None) -> None:
+    """Whether the screen being compiled for draws CJK (docs/CJK.md): its hello said "cjk". None is this app's own
+    firmware, the preview, which draws what the newest build does."""
+    global _cjk_screen
+    _cjk_screen = features is None or 'cjk' in (features or frozenset())
+
+
 def clean_text(text):
     """Text the screen can draw: known glyphs, accents folded to the base letter, at most TEXT_BYTES."""
-    glyphs = LEGACY_GLYPHS if i18n.legacy_screen() else GLYPHS
+    if i18n.legacy_screen():
+        glyphs = LEGACY_GLYPHS
+    elif _cjk_screen:
+        glyphs = GLYPHS | CJK_GLYPHS
+    else:
+        glyphs = GLYPHS
     out = []
     for char in unicodedata.normalize('NFC', one_mu(text)):
         if char in glyphs:
@@ -365,6 +385,7 @@ def message(layout, states, registry=None, units=None, tz=None, words=None, feat
     """`features`: what the screen's hello said it takes; the screen's own items go only to one that named them, since an
     older screen refuses a page with an item it does not know. None: the screen of this app's own firmware (the preview).
     `cards`: which tile's card each entity's item opens (core.bar_cards), for a screen that takes cards from its top bar."""
+    set_cjk_screen(features)
     items = []
     for item in header_items(layout):
         if item['type'] in HEADER_BUILTIN:
@@ -389,6 +410,7 @@ def message(layout, states, registry=None, units=None, tz=None, words=None, feat
 
 def preview(header, states, registry=None, units=None, tz=None, words=None):
     """What the editor's mockup shows per item, hidden ones included and marked."""
+    set_cjk_screen(None)
     result = []
     for item in header['items']:
         if item['type'] in HEADER_BUILTIN or item['type'] in HEADER_STATUS:

@@ -22,6 +22,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 ROOT = Path(__file__).resolve().parents[1]
 FOLDER = ROOT / 'screen_manager' / 'translations'
 KEYS_HEADER = ROOT / 'components' / 'smart_display' / 'screen_text_keys.h'
@@ -64,14 +65,20 @@ FORMS = {'one_other': 2, 'one_upto_1': 2, 'slavic_pl': 3, 'east_slavic': 3, 'non
 
 
 def font_letters():
-    """The characters every text font of the screens carries: what a `screen` text may use."""
+    """The characters every text font of the screens carries: what a `screen` text may use. The CJK set of the
+    boards that carry it counts too (docs/CJK.md): a screen set to a CJK language must be one of those boards."""
     spec = importlib.util.spec_from_file_location('profiles', ROOT / 'tools' / 'profiles.py')
     profiles = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(profiles)
     text = CORE.read_text(encoding='utf-8')
     sets = [profiles.glyphs(text, font) for font in ('headline', 'watch_value', 'label', 'sublabel', 'sublabel_big')]
     sets = [letters for letters in sets if letters is not None]
-    return set.intersection(*sets) if sets else set()
+    letters = set.intersection(*sets) if sets else set()
+    hardware = (ROOT / 'packages' / 'hardware' / 'guition-esp32p4.yaml').read_text(encoding='utf-8')
+    cjk = re.search(r'FONT_CJK_GLYPHS: "([^"]*)"', hardware)
+    if cjk:
+        letters |= set(cjk.group(1))
+    return letters
 
 
 def check():

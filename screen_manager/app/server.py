@@ -2787,6 +2787,7 @@ class Manager:
         """The state message of one tile: state, options, extras, and the history the background task holds. `lamps`:
         the screen takes a light group's lamps (its hello said `group_lamps`, firmware 0.3.9+). `features`: the other
         flags its hello said (page_delivery), None where the screen's hello is not known. `inbox`: the screen it goes to."""
+        header_bar.set_cjk_screen(features)
         # A plugin's tile (docs/PLUGINS.md): no entity behind it; its options and the data of its fetch, from the plugin of
         # that id this screen runs.
         if plugin_tile(tile['entity']):
