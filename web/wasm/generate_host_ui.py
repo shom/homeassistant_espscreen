@@ -41,6 +41,13 @@ def generate(dpi, look, profile):
     raw = profiles.raw_substitutions(ROOT / profile)
     raw['DISPLAY_DPI'] = str(dpi)
     values = profiles.evaluate(raw)
+    # The preview stands in for any screen, Chinese included (docs/CJK.md): the four text fonts take the Chinese
+    # set the P4 hardware package states, from the same face, whatever board's profile this variant is drawn from.
+    hardware = (ROOT / 'packages/hardware/guition-esp32p4.yaml').read_text(encoding='utf-8')
+    cjk = re.search(r'FONT_CJK_GLYPHS: "([^"]*)"', hardware)
+    if cjk:
+        values['FONT_CJK_GLYPHS'] = cjk.group(1)
+        values['SCREEN_CJK'] = 'true'
     values.update(CAMERA_PAINT_FILL='', CALIBRATION_PAINT_FILL='')
     core = profiles.resolve(profiles.CORE.read_text(), values)
     # Looks may add their own fonts. Let ESPHome merge the profile's font

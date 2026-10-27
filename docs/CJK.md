@@ -18,6 +18,17 @@ label that mixes them keeps one baseline and one line box.
 - Only English and Chinese ship in this fork: the European letters are not in the glyph lists, so `clean_text` folds an
   accent to its base letter or drops it. One rare letter, `ŀ` (U+0140), no available face carries; it is gone from the
   lists. The digit steps and the brand wordmark are still Roboto.
+- **Entity names are not known here.** A tile shows the name Home Assistant gives it, and a character the subsets do
+  not carry shows as a box. The set covers the app's own texts and a common home vocabulary (rooms, appliances,
+  family, states); after adding names with rarer characters, extend the set and rebuild the faces:
+
+  ```sh
+  python3 tools/build_cjk_font.py --source fonts/private/shs --add names.txt
+  ```
+
+  `names.txt` is any text: the script keeps its Chinese characters, rebuilds the three OTFs (metrics normalised as
+  above), updates `FONT_CJK_GLYPHS` and `header_bar.CJK_GLYPHS`, and says what the flash costs (about 1 KB per
+  character across the four steps).
 
 ## How the Chinese reaches a screen
 
@@ -27,6 +38,8 @@ label that mixes them keeps one baseline and one line box.
   other screens keep their old behaviour, and the editor's preview always draws what the newest build does.
 - The `zh` translation is `screen_manager/translations/zh.json`, next to `en.json`, the only two language files. Every
   `screen.*` text keeps to the glyph set (`tests/test_cjk.py`), and `tools/i18n.py check` proves it.
+- The browser preview (web/wasm) draws the same Chinese: `generate_host_ui.py` gives its fonts the set from the P4
+  hardware package whatever board's profile a variant is drawn from, so a rebuilt preview shows Chinese too.
 
 ## Regenerating the face
 
