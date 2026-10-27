@@ -305,7 +305,7 @@ class UpdaterTests(unittest.IsolatedAsyncioTestCase):
             m.ha.registry = m.ha.registry + [{'entity_id': 'sensor.lang1', 'platform': 'esphome', 'original_name': 'Screen language',
                                               'device_id': 'd1'}]
             m.ha.states.update({'text.fw1': {'state': FIRMWARE_VERSION}, 'sensor.lang1': {'state': 'en'}})
-            m.ha.ha_language = 'nl'
+            m.ha.ha_language = 'zh'
             first = m.screen('text.screen1')
             self.assertEqual(first['language'], 'en')
             self.assertEqual(m.updates.state_for(first)['language'], True)
@@ -313,13 +313,13 @@ class UpdaterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(m.updates.pending(), ['text.screen1'])
             async def speaks_dutch(data):
                 await asyncio.sleep(0)
-                m.ha.states['sensor.lang1'] = {'state': 'nl'}
+                m.ha.states['sensor.lang1'] = {'state': 'zh'}
                 m.firmware.job['state'] = 'success'
             m.firmware.run = speaks_dutch
             m.updates.start('text.screen1')
             await m.build_queue.idle()
             self.assertEqual(m.updates.results['text.screen1']['state'], 'success')
-            self.assertEqual(m.screen('text.screen1')['language'], 'nl')
+            self.assertEqual(m.screen('text.screen1')['language'], 'zh')
             self.assertEqual(m.updates.pending(), [])
 
     async def test_nightly_window_and_persistence(self):

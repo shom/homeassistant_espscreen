@@ -129,11 +129,15 @@ board's flash, the 4 MB boards have no room to spare, and the CYD runs close to 
 set. `tools/font_metrics.py` reads a font's line height from the TrueType file, for a check that needs the height LVGL
 will get without building.
 
-The five text fonts carry the same characters (firmware 0.36.0+): every printable ASCII character, the letters European
-languages write with, and three hearts (♡ ♥ ❤) from `fonts/NotoSansSymbols2-hearts.ttf` through ESPHome's `extras:`,
-as Roboto has none. The add-on's `header_bar.GLYPHS` is the same set (`tests/test_header_bar.py`), and `core.short`
-drops the invisible characters an emoji carries, which LVGL would otherwise draw as a box. A character outside the set
-shows as a box on the screen, so a new one goes into all five lists and `GLYPHS` together.
+This fork's five text fonts are one family for both scripts: Source Han Sans SC (`fonts/SourceHanSansSC-*.otf`, OFL),
+its three weights picked by the substitution (`FONT_TEXT_REGULAR`, `FONT_TEXT_MEDIUM`, `FONT_TEXT_BOLD`). They carry
+every printable ASCII character and the punctuation the ships draw; the Chinese glyphs come through the same face in
+`extras:` (`FONT_CJK_GLYPHS`, docs/CJK.md), so a label that mixes the two keeps one baseline and one line box. Three
+hearts (♡ ♥ ❤) still come from `fonts/NotoSansSymbols2-hearts.ttf`. Only English and Chinese are shipped in this fork,
+so the European letters are not in the set. The add-on's `header_bar.GLYPHS` is the same set
+(`tests/test_header_bar.py`), and `core.short` drops the invisible characters an emoji carries, which LVGL would
+otherwise draw as a box. A character outside the set shows as a box on the screen, so a new one goes into all five
+lists and `GLYPHS` together.
 
 ## What the firmware does with it
 

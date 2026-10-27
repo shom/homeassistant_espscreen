@@ -49,24 +49,25 @@ class NotationTests(unittest.TestCase):
             sv = region(tmp, 'sv')
             self.assertEqual((sv.language(), sv.clock_24h(), sv.number_style(), sv.group_min(), sv.percent_space()),
                              ('en', True, 'space', 1, True))
-            # Brazilian Portuguese: the Portuguese texts, Brazil's numbers.
+            # Brazilian Portuguese: no Portuguese texts in this fork, so English words with Brazil's numbers.
             br = region(tmp, 'pt-BR')
-            self.assertEqual((br.language(), br.number_style(), br.group_min()), ('pt', 'comma', 1))
+            self.assertEqual((br.language(), br.number_style(), br.group_min()), ('en', 'comma', 1))
             pt = region(tmp, 'pt')
             self.assertEqual((pt.number_style(), pt.group_min(), pt.percent_space()), ('space', 2, False))
-            us, uk = region(tmp, 'en'), region(tmp, 'en-GB')
-            self.assertEqual((us.clock_24h(), uk.clock_24h(), uk.language()), (False, True, 'en-GB'))
+            us = region(tmp, 'en')
+            self.assertEqual(us.clock_24h(), False)
+            zh = region(tmp, 'zh')
+            self.assertEqual((zh.language(), zh.number_style(), zh.group_min()), ('zh', 'point', 1))
             de = region(tmp, 'de')
             self.assertEqual((de.number_style(), de.percent_space()), ('comma', True))
 
     def test_a_chosen_language_and_format_win(self):
         with tempfile.TemporaryDirectory() as tmp:
-            chosen = region(tmp, 'nl', language='es', clock='12', numbers='point')
-            # A chosen format is Home Assistant's for it, which groups from four digits; the space before % stays the
-            # language's.
+            chosen = region(tmp, 'nl', language='zh', clock='12', numbers='point')
+            # A chosen format is Home Assistant's for it; an automatic one comes from the Home Assistant language.
             self.assertEqual((chosen.language(), chosen.clock_24h(), chosen.number_style(), chosen.group_min()),
-                             ('es', False, 'point', 1))
-            self.assertEqual(region(tmp, 'nl', language='es', clock='auto', numbers='auto').group_min(), 2)
+                             ('zh', False, 'point', 1))
+            self.assertEqual(region(tmp, 'nl', language='zh', clock='auto', numbers='auto').group_min(), 1)
         with tempfile.TemporaryDirectory() as tmp:
             view = region(tmp, 'de').view()
             self.assertEqual({key: view[key] for key in ('group_min', 'percent_space', 'numbers_effective')},
@@ -114,17 +115,17 @@ class ScreenContextTests(unittest.TestCase):
 
     def test_each_screen_gets_the_words_its_firmware_speaks(self):
         import header_bar
-        i18n.set_screens('nl', 'comma', True, 1, False)
+        i18n.set_screens('zh', 'point', True, 1, False)
         legacy = i18n.screen_context({'language': None, 'language_sensor': False})
-        dutch = i18n.screen_context({'language': 'nl', 'language_sensor': True})
+        chinese = i18n.screen_context({'language': 'zh', 'language_sensor': True})
         restarting = i18n.screen_context({'language': None, 'language_sensor': True})
-        self.assertEqual(i18n.screen_t('screen.ha.on'), 'Aan')
-        for context, word, number, letters in ((legacy, 'On', '1,234.5', 'Waz'), (dutch, 'Aan', '1.234,5', 'Wąż'),
-                                               (restarting, 'Aan', '1.234,5', 'Wąż')):
+        self.assertEqual(i18n.screen_t('screen.ha.on'), '开')
+        for context, word, number, letters in ((legacy, 'On', '1,234.5', 'Waz'), (chinese, '开', '1,234.5', 'Waz'),
+                                               (restarting, '开', '1,234.5', 'Waz')):
             token = i18n.SCREEN.set(context)
             try:
                 self.assertEqual((i18n.screen_t('screen.ha.on'), i18n.screen_number('1234.5')), (word, number))
-                # Firmware from before the languages lacks most accented letters: they fold to the base letter.
+                # This fork draws English and Chinese: an accented letter folds to its base, or goes.
                 self.assertEqual(header_bar.clean_text('Wąż'), letters)
             finally:
                 i18n.SCREEN.reset(token)
@@ -246,11 +247,11 @@ class ClockPinTests(unittest.IsolatedAsyncioTestCase):
         a playing media player said "Speelt" among English words on firmware 0.2.75)."""
         from server import HomeAssistant
         ha = HomeAssistant(None, 'http://127.0.0.1:1/api', 'token')
-        ha.language_of = lambda: 'nl'
-        ha.words_by_language = {'nl': {'state': 'Speelt'}, 'en': {'state': 'Playing'}}
-        self.assertEqual(ha.state_words, {'state': 'Speelt'})
-        for context, word in ((i18n.LEGACY, 'Playing'), ({'language': 'nl', 'legacy': False}, 'Speelt'),
-                              ({'language': 'de', 'legacy': False}, 'Speelt')):
+        ha.language_of = lambda: 'zh'
+        ha.words_by_language = {'zh': {'state': '播放中'}, 'en': {'state': 'Playing'}}
+        self.assertEqual(ha.state_words, {'state': '播放中'})
+        for context, word in ((i18n.LEGACY, 'Playing'), ({'language': 'zh', 'legacy': False}, '播放中'),
+                              ({'language': 'de', 'legacy': False}, '播放中')):
             token = i18n.SCREEN.set(context)
             try:
                 self.assertEqual(ha.state_words, {'state': word})
@@ -264,17 +265,17 @@ class ClockPinTests(unittest.IsolatedAsyncioTestCase):
             m = self.manager(Path(tmp) / 'screens.json')
             async with TestClient(TestServer(create_app(m, True))) as client:
                 csrf = (await (await client.get('/api/inventory?light=1')).json())['csrf']
-                answer = await client.put('/api/language', json={'setting': 'de', 'numbers': 'point'}, headers={'X-Screen-CSRF': csrf})
+                answer = await client.put('/api/language', json={'setting': 'zh', 'numbers': 'point'}, headers={'X-Screen-CSRF': csrf})
                 view = (await answer.json())['language']
                 self.assertEqual((view['effective'], view['numbers_effective'], view['group_min'], view['percent_space']),
-                                 ('de', 'point', 1, True))
+                                 ('zh', 'point', 1, False))
                 # What the screen reports stays English (the app reads it); the editor shows it in its own language.
-                dutch = await (await client.get('/api/inventory?light=1', headers={'X-ESP-Screens-Language': 'nl'})).json()
-                self.assertEqual((m.screens()[0]['status'], dutch['screens'][0]['status']), ('Synced', 'Gesynchroniseerd'))
-                refused = await client.put('/api/language', json={'clock': '13'}, headers={'X-Screen-CSRF': csrf, 'X-ESP-Screens-Language': 'nl'})
+                chinese = await (await client.get('/api/inventory?light=1', headers={'X-ESP-Screens-Language': 'zh'})).json()
+                self.assertEqual((m.screens()[0]['status'], chinese['screens'][0]['status']), ('Synced', '已同步'))
+                refused = await client.put('/api/language', json={'clock': '13'}, headers={'X-Screen-CSRF': csrf, 'X-ESP-Screens-Language': 'zh'})
                 self.assertEqual(refused.status, 400)
-                self.assertEqual((await refused.json())['error'], i18n.TRANSLATIONS.text('addon.errors.region_choice', 'nl'))
-            self.assertEqual(json.loads((Path(tmp) / 'language.json').read_text())['language'], 'de')
+                self.assertEqual((await refused.json())['error'], i18n.TRANSLATIONS.text('addon.errors.region_choice', 'zh'))
+            self.assertEqual(json.loads((Path(tmp) / 'language.json').read_text())['language'], 'zh')
 
 
 import unittest.mock  # noqa: E402

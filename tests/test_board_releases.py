@@ -98,7 +98,7 @@ class WhatAChangeReaches(unittest.TestCase):
     def test_a_translation_reaches_the_screens_only_through_its_screen_texts(self):
         """The firmware compiles the `screen` section in (components/smart_display/screen_text_gen.py); the add-on's own
         texts are no firmware."""
-        name = 'screen_manager/translations/nl.json'
+        name = 'screen_manager/translations/zh.json'
         now = json.loads((ROOT / name).read_text())
         editor_only = json.dumps({**now, 'addon': {**now.get('addon', {}), 'made_up': 'x'}})
         screen_too = json.dumps({**now, 'screen': {**now['screen'], 'made_up': 'x'}})
@@ -109,7 +109,7 @@ class WhatAChangeReaches(unittest.TestCase):
 
     def test_a_new_language_reaches_no_screen(self):
         """No screen speaks a language the base has no file for; one set to it is offered an update for its language."""
-        name = 'screen_manager/translations/nl.json'
+        name = 'screen_manager/translations/zh.json'
         with mock.patch.object(affected_boards, 'git', side_effect=affected_boards.subprocess.CalledProcessError(128, 'git')):
             self.assertEqual(reach(name)[name], set())
 

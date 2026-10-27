@@ -345,24 +345,16 @@ https://github.com/user-attachments/assets/f9f6a933-d388-4c8b-9c9a-011dfa37617b
 
 ## 用你的语言
 
-<p align="center">
-  <img src="docs/images/guition-german.png" width="31%" alt="A Guition in German: Wohnzimmer at the top with 16,8 °C, Dienstag, 15. September beside the analog clock, the days Di Mi Do, the Tischlampe at 75 % and Sam Zuhause">
-  <img src="docs/images/guition-french.png" width="31%" alt="The same screen in French: Salon, mardi 15 septembre beside the clock, Éclaircies with the days ma me je, the Lampe de table at 75 % and Sam Maison">
-  <img src="docs/images/guition-polish.png" width="31%" alt="The same screen in Polish: Salon, wtorek, 15 września beside the clock, the days wt śr cz, the Lampa stołowa at 75% and Sam w domu">
-</p>
-<p align="center"><sub>同一个家在德语、法语和波兰语下，房间和卡片都按各自语言命名。屏幕跟随你的 Home Assistant：它的语言、灯或扫地机器人的说法，以及你的国家书写日期、时间和数字的方式：德语法语是 75 %，波兰语和英语是 75%。</sub></p>
-
+本分支只提供**英语和中文（简体）**两种语言，其余语言包已移除；其他语言一律回退到英语。屏幕、编辑器和应用消息都只读这两份翻译文件。
 
 <p align="center">
   <img src="docs/images/editor-language.png" width="36%" alt="Language and region in Tessera: the screen language set to Home Assistant's language, the time format on 24 hour and the number format following the language">
 </p>
 <p align="center"><sub>想要与 Home Assistant 不同的语言时，到 设置 → 语言与地区 里改。</sub></p>
 
-- **编辑器**跟随你 Home Assistant 资料的语言，家里两个人可以各看各的。
+- **编辑器**跟随你 Home Assistant 资料的语言（只认英语和中文），家里两个人可以各看各的。
 - **屏幕**在固件里内置一种语言：更改后按屏幕上的**更新**（或让夜间自动更新完成）。时钟（24 小时或 12 小时 AM/PM）和数字格式会立即在所有屏幕上同时改变。
-  every screen at once.
 - **Home Assistant 的措辞仍是 Home Assistant 的**：门、空调或机器人在卡片和详情里的说法，就是它自己仪表盘在你语言下的说法。
-
 
 ## 警报
 

@@ -138,18 +138,18 @@ class TextTests(unittest.TestCase):
             i18n.set_screens('en', 'point', False)
             self.assertEqual(i18n.screen_clock(19, 57), '7:57 PM')
             self.assertEqual(i18n.screen_clock(0, 5), '12:05 AM')
-            i18n.set_screens('nl', 'comma', False)
-            self.assertEqual(i18n.screen_clock(9, 30), '9:30 a.m.')
-            i18n.set_screens('nl', 'comma', True)
+            i18n.set_screens('zh', 'point', False)
+            self.assertEqual(i18n.screen_clock(9, 30), '9:30 上午')
+            i18n.set_screens('zh', 'point', True)
             self.assertEqual(i18n.screen_clock(9, 30), '09:30')
         finally:
             i18n.set_screens('en', 'point', True)
 
     def test_text_keeps_to_the_font_and_its_length(self):
-        # Every letter European languages write with stays (app 0.2.90); anything else folds to its base letter or goes.
-        self.assertEqual(header_bar.clean_text('Café “Sun” 25 m³'), 'Café “Sun” 25 m³')
-        self.assertEqual(header_bar.clean_text('Ångström ✓'), 'Ångström')
-        self.assertEqual(header_bar.clean_text('Ǻngström'), 'Angström')
+        # This fork draws ASCII and Chinese: an accent outside the set folds to its base letter, or goes.
+        self.assertEqual(header_bar.clean_text('Café “Sun” 25 m³'), 'Cafe “Sun” 25 m³')
+        self.assertEqual(header_bar.clean_text('Ångström ✓'), 'Angstrom')
+        self.assertEqual(header_bar.clean_text('Ǻngström'), 'Angstrom')
         # Home Assistant writes μg/m³ with the Greek letter (U+03BC); the screens draw the micro sign (U+00B5).
         self.assertEqual(header_bar.clean_text('12 μg/m³'), '12 µg/m³')
         self.assertEqual(header_bar.clean_text('12 µg/m³'), '12 µg/m³')

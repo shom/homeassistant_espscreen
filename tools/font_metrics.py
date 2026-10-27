@@ -24,8 +24,14 @@ def line_height(font, size):
 
 
 def font_file(core_text, font_id):
-    """The TrueType file packages/core.yaml builds a font from, by its id, relative to the repository."""
+    """The TrueType file packages/core.yaml builds a font from, by its id, relative to the repository. A font may name
+    a substitution of its own (FONT_TEXT_* in this fork, docs/CJK.md) instead of the file under FONT_DIR."""
     found = re.search(r'- file: "\$\{FONT_DIR\}/([^"]+)"\n    id: ' + re.escape(font_id) + r'\n', core_text)
-    if not found:
-        raise KeyError(f'no font {font_id} in packages/core.yaml')
-    return 'fonts/' + found[1]
+    if found:
+        return 'fonts/' + found[1]
+    named = re.search(r'- file: "\$\{(\w+)\}"\n    id: ' + re.escape(font_id) + r'\n', core_text)
+    if named:
+        path = re.search(r'\n  ' + re.escape(named[1]) + r': "\$\{FONT_DIR\}/([^"]+)"', core_text)
+        if path:
+            return 'fonts/' + path[1]
+    raise KeyError(f'no font {font_id} in packages/core.yaml')

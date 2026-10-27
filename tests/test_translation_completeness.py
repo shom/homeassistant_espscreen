@@ -14,10 +14,10 @@ class TranslationCompletenessTests(unittest.TestCase):
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         with redirect_stdout(io.StringIO()):
-            self.assertEqual(module.check(), 0)  # en-GB inherits untranslated keys from en.
+            self.assertEqual(module.check(), 0)  # this fork ships English and Chinese.
         for group, key in [('editor.pages', 'title'), ('screen.status', 'configuration_problem')]:
             languages = module.languages()
-            target = languages['de']
+            target = languages['zh']
             for part in group.split('.'): target = target[part]
             del target[key]
             output = io.StringIO()

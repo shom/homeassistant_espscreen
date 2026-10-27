@@ -65,7 +65,7 @@ class AddonTests(unittest.TestCase):
             header_bar.set_cjk_screen(None)
             self.assertEqual(header_bar.clean_text(samples), samples)
             # Latin behaviour unchanged, flag on or off.
-            self.assertEqual(header_bar.clean_text('Ångström ✓'), 'Ångström')
+            self.assertEqual(header_bar.clean_text('Ångström ✓'), 'Angstrom')
         finally:
             header_bar.set_cjk_screen(frozenset())
 

@@ -1,44 +1,41 @@
 # Chinese (CJK) text on the screens
 
-The screens' five text fonts are a fixed set (docs/RESPONSIVE.md, "One set of fonts") that carries Latin and the
-letters European languages write with. This page is about the CJK glyphs a board may add on top, and the `zh`
-translation that goes with them.
+This fork draws two languages on the screens: English and Chinese. The text fonts are one family for both, so a
+label that mixes them keeps one baseline and one line box.
 
-## How it is gated
+## The face
 
-- `packages/core.yaml` states the defaults: `FONT_CJK_FILE` (the face), `FONT_CJK_GLYPHS` (empty, so an extra that
-  carries no glyphs and costs nothing) and `SCREEN_CJK` (false).
-- Four of the five text fonts (`headline`, `label`, `sublabel`, `sublabel_big`) take a second `extras:` entry whose
-  glyphs are `${FONT_CJK_GLYPHS}`. `watch_value` stays Latin: at its size the whole set would cost more than the
-  other four together, and a large value is a number anyway.
-- A board that has the flash for Chinese states the set and the flag. Today only `packages/hardware/guition-esp32p4.yaml`
-  does, so the ESP32-P4 boards (Guition 10.1-inch, 7-inch and 4.3-inch, CrowPanel 10.1) draw Chinese; every other
-  board builds exactly as before, and the four base glyph lists are unchanged (tests/test_cjk.py holds this).
-- The set lives in `fonts/NotoSansSC-Regular-cjk.ttf` (Noto Sans SC, SIL OFL 1.1), cut with fontTools' pyftsubset to
-  the 1 500 most common hanzi by frequency, CJK punctuation, and the words of the zh translation - 1 553 glyphs,
-  about 420 KB. Rasterised at the four sizes with bpp 4 it costs roughly 2 MB of flash on a P4 build. Trim the set by
-  stating a smaller `FONT_CJK_GLYPHS` in a screen's own YAML.
-- ESPHome refuses a glyph that appears twice in one font, so the set must not repeat a character the main list
-  already carries. `tests/test_cjk.py` holds the add-on's copy of the set against the board's.
-- A build with `SCREEN_CJK: "true"` says `cjk` in its hello (packages/core.yaml, next to `battery`), and the app
-  keeps Chinese text through `clean_text` only for a screen that said so (header_bar.CJK_GLYPHS, header_bar.set_cjk_screen);
+- `fonts/SourceHanSansSC-Regular.otf`, `-Medium.otf` and `-Bold.otf` are Source Han Sans SC subsets (SIL OFL 1.1,
+  see `fonts/SourceHanSansSC-OFL.txt`). They carry the printable ASCII characters, the punctuation the screens use,
+  and the 1 566 Chinese glyphs the app and the zh translation need - 1 682 glyphs each, about 720 KB.
+- `packages/core.yaml` states the three faces as `FONT_TEXT_REGULAR`, `FONT_TEXT_MEDIUM` and `FONT_TEXT_BOLD`; the five
+  text fonts use them (`label` is the bold face, `headline` and `watch_value` the medium, `sublabel` and
+  `sublabel_big` the regular). The Chinese glyphs of the four CJK-enabled fonts come from the same face through
+  `extras:` (`FONT_CJK_GLYPHS`), which is what keeps the two scripts on one baseline.
+- The subsets' vertical metrics are normalised to the line box the cards were designed with (hhea/OS/2 ascent 928 and
+  descent -244 per 1000 upm, the ratios of Roboto, which every card size was tuned against), so the switch does not
+  move any layout. Their outlines are unchanged.
+- Only English and Chinese ship in this fork: the European letters are not in the glyph lists, so `clean_text` folds an
+  accent to its base letter or drops it. One rare letter, `ŀ` (U+0140), no available face carries; it is gone from the
+  lists. The digit steps and the brand wordmark are still Roboto.
+
+## How the Chinese reaches a screen
+
+- `SCREEN_CJK` states whether a build carries the Chinese glyphs; `packages/hardware/guition-esp32p4.yaml` turns it on
+  for the ESP32-P4 boards, which have the flash. A build with it says `cjk` in its hello, and the app keeps Chinese
+  text through `clean_text` only for a screen that said so (`header_bar.CJK_GLYPHS`, `header_bar.set_cjk_screen`);
   other screens keep their old behaviour, and the editor's preview always draws what the newest build does.
+- The `zh` translation is `screen_manager/translations/zh.json`, next to `en.json`, the only two language files. Every
+  `screen.*` text keeps to the glyph set (`tests/test_cjk.py`), and `tools/i18n.py check` proves it.
 
-## The zh translation
-
-`screen_manager/translations/zh.json` follows docs/TRANSLATING.md (plural rule `none`, 24-hour clock). Its `screen`
-section - Home Assistant's state words, the boot and status texts, the dates - is translated and keeps to the CJK
-set; keys this file still lacks are filled from English, so the screens show a mix until someone finishes it, and
-`_meta.checked` stays false. Choose it per screen under Settings - Language & region; set that only on a board that
-carries the CJK glyphs, or the texts show as boxes.
-
-## Regenerating the set
+## Regenerating the face
 
 ```sh
-pyftsubset NotoSansSC-Regular.ttf --text-file=chars.txt --output-file=fonts/NotoSansSC-Regular-cjk.ttf \
+pyftsubset SourceHanSansSC-Regular.otf --text-file=chars.txt --output-file=fonts/SourceHanSansSC-Regular.otf \
   --layout-features='*' --name-IDs='*' --name-legacy --name-languages='*' \
   --notdef-glyph --notdef-outline --recommended-glyphs --glyph-names --symbol-cmap --legacy-cmap
 ```
 
-`chars.txt` is the frequency-ordered hanzi list plus punctuation; the same characters, minus the ones the main lists
-already carry, are the `FONT_CJK_GLYPHS` value in the P4 hardware package and `header_bar.CJK_GLYPHS` in the app.
+Then set `hhea.ascent/descent/lineGap` and the OS/2 typo and win metrics to 928, -244 and 0, as the table above says.
+`chars.txt` is printable ASCII, the punctuation the five lists carry, and the Chinese characters of
+`header_bar.CJK_GLYPHS`.

@@ -37,7 +37,7 @@ class PageApiTests(unittest.IsolatedAsyncioTestCase):
         from page_delivery import Refused
         refusal = Refused(english('addon.errors.pages.memory'))
         self.manager.status['text.screen'] = refusal.message
-        for language, fragment in [('nl', 'onvoldoende vrij geheugen'), ('de', 'nicht genug freien Speicher'), ('en', 'not have enough free memory')]:
+        for language, fragment in [('zh', '剩余内存放不下'), ('en', 'not have enough free memory')]:
             response = await self.client.get('/api/inventory?light=1', headers={'X-ESP-Screens-Language': language})
             screen = next(s for s in (await response.json())['screens'] if s['id'] == 'text.screen')
             self.assertIn(fragment, screen['delivery'])
@@ -89,7 +89,7 @@ class PageApiTests(unittest.IsolatedAsyncioTestCase):
         self.path.write_text(json.dumps({'version': 1, 'screens': {'text.screen': []}}))
         record = self.manager.store.get('text.screen')
         self.assertEqual(record['migrationError'], 'addon.errors.pages.migration_unreadable')
-        for language, fragment in [('nl', 'De oude indeling'), ('de', 'Das alte Layout'), ('en', 'The old layout')]:
+        for language, fragment in [('zh', '旧布局无法读取'), ('en', 'The old layout')]:
             response = await self.client.get('/api/inventory?light=1', headers={'X-ESP-Screens-Language': language})
             screen = next(s for s in (await response.json())['screens'] if s['id'] == 'text.screen')
             self.assertIn(fragment, screen['page_document']['migrationError'])
@@ -154,10 +154,10 @@ class PageApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await response.json(), before)
 
     async def test_page_delivery_status_follows_editor_language(self):
-        for status, translated in [('Saved, waiting for screen', 'Opgeslagen; wacht op synchronisatie'),
-                                   ('Applying', 'Indeling toepassen'), ('Applied', 'Indeling toegepast')]:
+        for status, translated in [('Saved, waiting for screen', '已保存；等待同步'),
+                                   ('Applying', '正在应用布局'), ('Applied', '布局已应用')]:
             self.manager.status['text.screen'] = status
-            response = await self.client.get('/api/inventory', headers={'X-ESP-Screens-Language': 'nl'})
+            response = await self.client.get('/api/inventory', headers={'X-ESP-Screens-Language': 'zh'})
             screen = next(screen for screen in (await response.json())['screens'] if screen['id'] == 'text.screen')
             self.assertEqual(screen['delivery'], translated)
 
