@@ -2,6 +2,13 @@
 #
 # The `ui_snapshot` action (Home Assistant, or diagnostics/capture_ui.py) copies the screen LVGL draws row by row into
 # the log, which capture_ui.py turns into a PNG. It needs LVGL's snapshot, which this file switches on.
+#
+# The same switch carries the page slide (components/smart_display/page_slide.h): the length of a page crossing in
+# milliseconds, 0 for the instant switch. A board file sets PAGE_SLIDE_MS after its includes to suit its glass.
+substitutions:
+  PAGE_SLIDE_MS: "240"
+  PAGE_SLIDE_STAGGER: "15"    # a batch of the new page's cards every 15 ms under the crossing pictures
+
 esphome:
   platformio_options:  # not `build_flags:` yet, see packages/core.yaml
     build_flags:

@@ -10111,6 +10111,7 @@ inline int place_page(int page, bool kept = false) {
   return page;
 }
 inline void apply_page(int page) {
+  if(slide_fill_armed)slide_fill_direct();  // the fill ran under a slide: it ends here, before this layout moves the cards
   page_slide::cancel();  // the page is placed again: a picture of it from before is not it any more
   applied_page=place_page(page);
   if(room_label){mark_all();render(room_label);}else refresh_all();
@@ -10345,6 +10346,60 @@ inline void forget_kept() {
 #endif
   }
 }
+// ---- 甲·错峰: the new page's cards fill in batches under the crossing pictures ----
+// The slide's own window does the content pass, a few slots per tick, while the live area rests hidden (page_slide
+// hides it in `take`). The fill finishing asks page_slide for the second picture: it joins the crossing pair where
+// the glass stands. Without a slide on its way the pass stays where it always was, in front of the switch.
+inline std::vector<size_t> slide_fill_pending;
+inline bool slide_fill_armed = false;
+inline uint32_t slide_fill_synced = 0;  // the change number the glass reaches when the pending cards are drawn
+inline lv_timer_t *slide_fill_timer = nullptr;
+inline void slide_fill_finish();
+inline void slide_fill_direct();
+inline void slide_fill_tick(lv_timer_t *timer) {
+  (void) timer;
+  for (unsigned n = 0; n < 2 && !slide_fill_pending.empty(); ++n) {  // two slots a tick: the pass shares the loop with the frames
+    render_slot(slide_fill_pending.back());
+    slide_fill_pending.pop_back();
+  }
+  if (slide_fill_pending.empty()) slide_fill_finish();
+}
+inline void slide_fill_schedule() {
+  if (slide_fill_timer) return;
+  const uint32_t ms = page_slide::stagger_ms ? page_slide::stagger_ms : 15;
+  slide_fill_timer = lv_timer_create(slide_fill_tick, ms, nullptr);
+}
+inline void slide_fill_deschedule() {
+  if (!slide_fill_timer) return;
+  lv_timer_delete(slide_fill_timer);
+  slide_fill_timer = nullptr;
+}
+// Everything pending at once: the slide ended or died with the fill not done, a layout takes the glass. The area is
+// still hidden here, so the work costs no frames and shows nothing until `join` reveals it.
+inline void slide_fill_direct() {
+  slide_fill_deschedule();
+  while (!slide_fill_pending.empty()) {
+    render_slot(slide_fill_pending.back());
+    slide_fill_pending.pop_back();
+  }
+  slide_fill_finish();
+}
+inline void slide_fill_finish() {
+  glass_synced = slide_fill_synced;
+  slide_fill_armed = false;
+  swipe_profile::content_complete();  // the staggered pass ends here: `done` still means "the page stands"
+  page_slide::join();  // pictures the rendered area and hands the glass over (plain `run` when no slide crossed)
+}
+inline void slide_fill_arm(uint32_t synced_at) {
+  slide_fill_armed = true;
+  slide_fill_synced = synced_at;
+  slide_fill_pending.clear();
+  for (size_t slot = 0; slot < grid.slots(); ++slot) {
+    const auto &w = widgets[slot];
+    if (w.tile && w.index < model.count) slide_fill_pending.push_back(slot);
+  }
+  slide_fill_schedule();
+}
 inline void show_page(int &page, lv_obj_t *previous, lv_obj_t *next, lv_obj_t *number) {
   const int step=page_slide::take_wanted();  // the gesture that asked for this switch, if one did
   // The tile pages' bar is declared in the core and dressed by the pager every page shares (page_bar.h): the press
@@ -10367,10 +10422,12 @@ inline void show_page(int &page, lv_obj_t *previous, lv_obj_t *next, lv_obj_t *n
   swipe_profile::FillTimer timer;
   last_turn_ms=esphome::millis();
   live_tiles_halt();  // a live tile's picture never stays where its card left
-  // A page one step away slides (page_slide.h): a picture of the page leaving goes over the new one and off the glass.
+  // A page one step away slides (page_slide.h): a picture of the page leaving goes over the new one and off the glass;
+  // when the new page pictures too, both sides cross together and the live area shows again without a jump.
   // A card open over the page keeps the instant switch: the picture is of the page, not of the card on it.
   const bool card=detail_root && !lv_obj_has_flag(detail_root,LV_OBJ_FLAG_HIDDEN);
   const bool sliding=!card && step && page_slide::begin(lv_obj_get_parent(room_label),step);
+  const bool staggered=sliding && page_slide::staggered();  // 甲·错峰: the pass below goes under the crossing pictures
   const auto kept=keep_page(page,glass_synced);
   applied_page=place_page(page,kept.kept);
   // A page with a title of its own carries it into the top bar with the same frame as its tiles, not a tick later.
@@ -10383,12 +10440,21 @@ inline void show_page(int &page, lv_obj_t *previous, lv_obj_t *next, lv_obj_t *n
   // Every card of the page, in this pass: the refresh that follows shows them together. A kept page draws only the
   // cards whose tile changed while it was away; after a minute (or a display setting) they all follow a frame later.
   const bool all=!kept.kept || changes.all_after(kept.synced);
+  if(staggered){
+    // The area hides and the slide starts with the leaving page alone: the cards fill in batches below, the second
+    // picture is taken when they stand, and the fill's end hands the glass over (`join`). A kept page is asked for
+    // every card again here - drawing one that already shows its tile costs a slot of CPU and no eye.
+    page_slide::take();
+    page_slide::run();
+    slide_fill_arm(changes.last);
+    return;  // `content_complete` waits with the fill: swipe_profile's `done` keeps meaning "the page stands"
+  }
   for(size_t slot=0;slot<grid.slots();++slot){
     const auto &w=widgets[slot];
     if(w.tile && w.index<model.count && (all || changes.tile_after(w.index,kept.synced)))render_slot(slot);
   }
   glass_synced=changes.last;
-  if(sliding)page_slide::run();
+  if(sliding){page_slide::take();page_slide::run();}  // picture the rendered page too, then cross (page_slide.h)
   swipe_profile::content_complete();
 }
 // A navigation tile (screen.page, firmware 0.2.62+): the page it names, kept within the pages the screen has.
