@@ -10110,6 +10110,9 @@ inline int place_page(int page, bool kept = false) {
   lap(swipe_profile::PLACE);
   return page;
 }
+// The staggered fill below the slide (declared beside `show_page`): a layout arriving mid-fill ends it first.
+inline bool slide_fill_armed;
+inline void slide_fill_direct();
 inline void apply_page(int page) {
   if(slide_fill_armed)slide_fill_direct();  // the fill ran under a slide: it ends here, before this layout moves the cards
   page_slide::cancel();  // the page is placed again: a picture of it from before is not it any more
@@ -10351,7 +10354,7 @@ inline void forget_kept() {
 // hides it in `take`). The fill finishing asks page_slide for the second picture: it joins the crossing pair where
 // the glass stands. Without a slide on its way the pass stays where it always was, in front of the switch.
 inline std::vector<size_t> slide_fill_pending;
-inline bool slide_fill_armed = false;
+// `slide_fill_armed` and `slide_fill_direct` are declared above `apply_page`, which ends a running fill first.
 inline uint32_t slide_fill_synced = 0;  // the change number the glass reaches when the pending cards are drawn
 inline lv_timer_t *slide_fill_timer = nullptr;
 inline void slide_fill_finish();
