@@ -70,6 +70,7 @@
 #include "weather_chart.h"
 #include "climate_tile.h"
 #include "swipe_profile.h"
+#include "page_slide.h"
 #include "lvgl.h"
 #include <functional>
 #include <algorithm>
@@ -10110,6 +10111,7 @@ inline int place_page(int page, bool kept = false) {
   return page;
 }
 inline void apply_page(int page) {
+  page_slide::cancel();  // the page is placed again: a picture of it from before is not it any more
   applied_page=place_page(page);
   if(room_label){mark_all();render(room_label);}else refresh_all();
 }
@@ -10344,6 +10346,7 @@ inline void forget_kept() {
   }
 }
 inline void show_page(int &page, lv_obj_t *previous, lv_obj_t *next, lv_obj_t *number) {
+  const int step=page_slide::take_wanted();  // the gesture that asked for this switch, if one did
   // The tile pages' bar is declared in the core and dressed by the pager every page shares (page_bar.h): the press
   // patch, and the chevrons' ink on the tiles' margin.
   if(!nav_prev){page_bar::patch(previous);page_bar::patch(next);}
@@ -10364,6 +10367,10 @@ inline void show_page(int &page, lv_obj_t *previous, lv_obj_t *next, lv_obj_t *n
   swipe_profile::FillTimer timer;
   last_turn_ms=esphome::millis();
   live_tiles_halt();  // a live tile's picture never stays where its card left
+  // A page one step away slides (page_slide.h): a picture of the page leaving goes over the new one and off the glass.
+  // A card open over the page keeps the instant switch: the picture is of the page, not of the card on it.
+  const bool card=detail_root && !lv_obj_has_flag(detail_root,LV_OBJ_FLAG_HIDDEN);
+  const bool sliding=!card && step && page_slide::begin(lv_obj_get_parent(room_label),step);
   const auto kept=keep_page(page,glass_synced);
   applied_page=place_page(page,kept.kept);
   // A page with a title of its own carries it into the top bar with the same frame as its tiles, not a tick later.
@@ -10381,6 +10388,7 @@ inline void show_page(int &page, lv_obj_t *previous, lv_obj_t *next, lv_obj_t *n
     if(w.tile && w.index<model.count && (all || changes.tile_after(w.index,kept.synced)))render_slot(slot);
   }
   glass_synced=changes.last;
+  if(sliding)page_slide::run();
   swipe_profile::content_complete();
 }
 // A navigation tile (screen.page, firmware 0.2.62+): the page it names, kept within the pages the screen has.
@@ -10396,6 +10404,7 @@ inline void go_to_page(int page, bool remember) {
 inline void go_back() {
   if(!shown_page || !nav_number || !navigation_ready())return;
   *shown_page=navigation_history.pop(model.page_data,*shown_page);
+  page_slide::wants(-1);  // Back comes the way the pages went
   show_page(*shown_page,nav_prev,nav_next,nav_number);
 }
 // ---- Pages prepared ahead (firmware 0.3.2+) ----
@@ -13130,6 +13139,7 @@ inline bool step_page(int step) {
   if (target == *shown_page) return false;
   ESP_LOGI("touch", "page swipe: page %d -> %d", *shown_page, target);
   swipe_glow(step > 0 ? Edge::right : Edge::left);
+  page_slide::wants(step);
   turn_page(target);
   return true;
 }
