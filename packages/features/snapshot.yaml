@@ -7,7 +7,6 @@
 # milliseconds, 0 for the instant switch. A board file sets PAGE_SLIDE_MS after its includes to suit its glass.
 substitutions:
   PAGE_SLIDE_MS: "240"
-  PAGE_SLIDE_STAGGER: "15"    # a batch of the new page's cards every 15 ms under the crossing pictures
 
 esphome:
   platformio_options:  # not `build_flags:` yet, see packages/core.yaml

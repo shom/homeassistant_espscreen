@@ -23,9 +23,6 @@ substitutions:
   # The page slide (page_slide.h): the length of a page crossing in milliseconds, 0 for the instant switch.
   # features/snapshot.yaml turns it on for the boards that carry it; a board file overrides it for its glass.
   PAGE_SLIDE_MS: "0"
-  # 甲·错峰: under a slide, the new page's cards fill two per batch every these many ms while the pictures cross,
-  # instead of one content pass before the switch. 0 keeps the pass in front; features/snapshot.yaml sets a batch tick.
-  PAGE_SLIDE_STAGGER: "0"
   # The language of every text on the screen (app 0.2.90): a file in screen_manager/translations, English for any
   # text it lacks. ESP Screens writes it into the screen's own YAML, from Home Assistant's language or its Settings.
   LANGUAGE: "en"
@@ -298,7 +295,6 @@ esphome:
           // The page slide takes its length from the board (features/snapshot.yaml): a board without the feature
           // never reaches this code, its `page_slide` compiles away (page_slide.h).
           page_slide::set_duration((uint32_t) atoi("${PAGE_SLIDE_MS}"));
-          page_slide::set_stagger((uint32_t) atoi("${PAGE_SLIDE_STAGGER}"));
           // Full: a tap on the page dots opens the Dock, the chevrons keep the bar's outer parts (the dock module).
           runtime_tiles::page_dots_open(id(page_number));
           // The alert card, laid out on the glass it landed on (firmware 0.2.103+): screen_alert::layout works every
